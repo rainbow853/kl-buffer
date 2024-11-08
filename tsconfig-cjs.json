@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "CommonJS",
+    "declaration": true,
+    "declarationDir": "./dist",
+    "outDir": "./temp/cjs",
+    "rootDir": "./src",
+    "moduleResolution": "Node",
+    // ref-napi库没有default导出，此选项会自动将其转换为具有默认导出的模块
+    "esModuleInterop": true,
+    "strict": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}

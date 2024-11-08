@@ -1,10 +1,19 @@
 {
   "name": "kl-buffer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Fast write/read Buffer in javascript way",
-  "main": "index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p tsconfig-cjs.json && tsc -p tsconfig-mjs.json",
+    "postbuild": "node rename.js",
+    "prepublishOnly": "npm run build"
   },
   "author": "",
   "keywords": [
@@ -12,8 +21,12 @@
     "buffer2address"
   ],
   "license": "ISC",
-  "dependencies": {
-    "ref-napi": "^3.0.3"
+  "devDependencies": {
+    "@types/ref-napi": "^3.0.12",
+    "ref-napi": "^3.0.3",
+    "typescript": "^5.6.3"
   },
-  "files": ["index.js"]
+  "files": [
+    "dist"
+  ]
 }

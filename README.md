@@ -1,125 +1,127 @@
 # KLBuffer   
 
-Fast write/read Buffer in javascript way.
+`KLBuffer`是一个用于Nodejs中处理与C++交互过程中的数字数组与Buffer互相转化的工具类；支持数据类型有：char、uchar、short、ushort、int、uint、float、double等
 
 
-## Installation   
-
-Install with npm:
+## 安装   
 ```
 npm install kl-buffer
 ```
 
-## class KLBuffer   
+### 使用
 
-### Static Function   
+### 1. 读写值
+```typescript
+let klBuffer = KLBuffer.alloc(2);
+console.log(klBuffer.ucharArray);
+// 输出：[0,0]
+klBuffer.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+console.log(klBuffer.ucharArray);
+// 输出：[1,2,3,4,5,6,7,8,9,10]
+console.log(klBuffer.uchar[5]);
+// 输出：6
+klBuffer.uchar[5] = 50;
+console.log(klBuffer.uchar[5]);
+// 输出：50
 
-`KLBuffer.alloc(size:number, data:Buffer|TypedArray|DataView|number, deepCopy:boolean) => KLBuffer`    
-  Allocates a new KLBuffer of size bytes.
+klBuffer.doubleArray = [1.5, 2.5];
+console.log(klBuffer.doubleArray);
+// 输出：[1.5,2.5]
+console.log(klBuffer.double[0]);
+// 输出：1.5
+klBuffer.double[0] = 3.5;
+console.log(klBuffer.double[0]);
+// 输出：3.5
+```
+#### 2. 从已有buffer中拷贝数据
+##### 2.1 API
+```typescript
+type NumberArray = Int8Array | Uint8Array | Uint8ClampedArray |
+  Int16Array | Uint16Array |
+  Int32Array | Uint32Array |
+  BigInt64Array | BigUint64Array |
+  Float32Array | Float64Array;
+type DataSource = Buffer | NumberArray | DataView | number;
 
-- param
-  - `size` The desired length of the new Buffer
-  - `data` (optional) Initialize data. Buffer/TypedArray/DataView/The memory address of the buffer instance
-  - `deepCopy` (optional) Whether to copy data in depth. Defaults to false
+KLBuffer.from(
+  /** 数据来源 */
+  data: DataSource,
+  /** 对应数据的字节大小 */
+  size: number,
+  /** 是否深拷贝；默认值: false */
+  deepCopy?: boolean,
+) => Buffer|null
+```
+##### 2.2 深拷贝
+```typescript
+let klBuffer1 = KLBuffer.alloc(10);
+let klBuffer2 = KLBuffer.alloc(10);
+klBuffer1.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+console.log(klBuffer2.ucharArray);
+// 输出：[0,0,0,0,0,0,0,0,0,0]
 
+klBuffer2.from(klBuffer1.ptr, 10, true);
+console.log(klBuffer2.ucharArray);
+// 输出：[1,2,3,4,5,6,7,8,9,10]
 
-`KLBuffer.parseDataToBuffer(data:Buffer|TypedArray|DataView|number, size:number) => Buffer|null`   
-  Parse data to buffer
+klBuffer2.uchar[2] = 30;
+console.log(klBuffer2.ucharArray);
+// 输出：[1,2,30,4,5,6,7,8,9,10]
+console.log(klBuffer1.ucharArray);
+// 输出：[1,2,3,4,5,6,7,8,9,10]
+console.log(klBuffer1.ptrVal, klBuffer2.ptrVal);
+  // 2611228548128 2611228547776
+```
+##### 2.3 浅拷贝
+```typescript
+let klBuffer1 = KLBuffer.alloc(10);
+let klBuffer2 = KLBuffer.alloc(10);
+klBuffer1.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+console.log(klBuffer2.ucharArray);
+// 输出：[0,0,0,0,0,0,0,0,0,0]
 
-- param
-  - `data` Data to be parsed. Buffer/TypedArray/DataView/The memory address of the buffer instance
-  - `size` The length of the returned Buffer.
+klBuffer2.from(klBuffer1.ptr, 10, false); // 两者共用内存地址
+console.log(klBuffer2.ucharArray);
+// 输出：[1,2,3,4,5,6,7,8,9,10]
 
-
-### Instance Property   
-
-`buffer` Buffer instance   
-
-`ptrVal` The memory address of the buffer instance   
-
-`ptr` Memory block first address pointer   
-
-`size` The length of the buffer  
-
-### Instance Function   
-
-`.from(data:Buffer|TypedArray|DataView|number, size:number, deepCopy:boolean) => KLBuffer` Copies data from a Buffer or TypedArray or DataView.
-
-- param
-  - `data` Copyed data. Buffer/TypedArray/DataView/The memory address of the buffer instance
-  - `size` The length of the returnd Buffer
-  - `deepCopy` (optional) Defaults to false
-
-
-`.set(val:number)` A value to pre-fill the buffer with.
-
-- param
-  - `val` (optional) Defaults to 0
-
-
-
-### Fast write/read Buffer in javascript way
-
-- char array
-- uchar array
-```javascript
-  let klBuffer = KLBuffer.alloc(2);
-  console.log(klBuffer.ucharArray); //[0,0]
-  klBuffer.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  console.log(klBuffer.ucharArray); //[1,2,3,4,5,6,7,8,9,10]
-  console.log(klBuffer.uchar[5]); //6
-  klBuffer.uchar[5] = 50;
-  console.log(klBuffer.uchar[5]); //50
+klBuffer2.uchar[2] = 30;
+console.log(klBuffer2.ucharArray);
+// 输出：[1,2,30,4,5,6,7,8,9,10]
+console.log(klBuffer1.ucharArray);
+// 输出：[1,2,30,4,5,6,7,8,9,10]
+console.log(klBuffer1.ptrVal, klBuffer2.ptrVal);
+  // 1470764395952 1470764395952
 ```
 
-- short array
-- ushort array
-- int array
-- uint array
-- float array
-- double array
-```javascript
-  let klBuffer = KLBuffer.alloc(16);
-  console.log(klBuffer.doubleArray); //[0,0]
-  klBuffer.doubleArray = [1.5, 2.5];
-  console.log(klBuffer.doubleArray); //[1.5,2.5]
-  console.log(klBuffer.double[0]);  //1.5
-  klBuffer.double[0] = 3.5;
-  console.log(klBuffer.double[0]);  //3.5
-```
+##### 2.4 跨线程传递数据
+> **使用过程中需保证buffer数据没有被回收！**
+```typescript
+const { KLBuffer } = require('kl-buffer');
+const {
+  Worker,
+  isMainThread,
+  setEnvironmentData,
+  getEnvironmentData,
+} = require('worker_threads');
 
-### pointer
-
-- copy data from pointer
-```javascript
-  let klBuffer1 = KLBuffer.alloc(10);
-  let klBuffer2 = KLBuffer.alloc(10);
-  klBuffer1.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  console.log(klBuffer2.ucharArray); //[0,0,0,0,0,0,0,0,0,0]
-  klBuffer2.from(klBuffer1.ptr);
-  console.log(klBuffer2.ucharArray); //[1,2,3,4,5,6,7,8,9,10]
-```
-
-- initialization buffer width pointer
-```javascript
-  let klBuffer1 = KLBuffer.alloc(10);
-  klBuffer1.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  let klBuffer2 = KLBuffer.alloc(5, klBuffer1.ucharPtr[5]);
-  console.log(klBuffer2.ucharArray); //[6,7,8,9,10]
-```
-
-- The difference between deepCopy being true and false
-```javascript
-  let klBuffer1 = KLBuffer.alloc(10);
-  klBuffer1.ucharArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  let klBuffer2 = KLBuffer.alloc(5, klBuffer1.ucharPtr[5], true);
-  klBuffer2.ucharArray = [1,2,3,4,5];
-  console.log(klBuffer1.ucharArray); //[1,2,3,4,5,6,7,8,9,10]
-
-  let klBuffer3 = KLBuffer.alloc(5, klBuffer1.ucharPtr[5], false);
-  klBuffer3.ucharArray = [1,2,3,4,5];
-  console.log(klBuffer1.ucharArray); //[1,2,3,4,5,1,2,3,4,5]
-
-  console.log(klBuffer1.ptrVal, klBuffer2.ptrVal, klBuffer3.ptrVal);
-  // 2540086547104 2540086697424 2540086547109
+if (isMainThread) {
+  // 主进程
+  const klBuffer = KLBuffer.alloc(2);
+  setEnvironmentData('klBuffer', [klBuffer.ptrVal, klBuffer.size]);
+  new Worker(__filename);
+  setInterval(() => {
+    klBuffer.uchar[0] = klBuffer.uchar[0] + 1;
+    // 可以观察到与子线程的内存地址与数据均一致
+    console.log(klBuffer.ptrVal, klBuffer.ucharArray, 'main');
+  }, 1000)
+} else {
+  // 子线程
+  const [ptrVal, size] = getEnvironmentData('klBuffer');
+  const klBuffer = KLBuffer.alloc(size, ptrVal);
+  setInterval(() => {
+    klBuffer.uchar[1] = klBuffer.uchar[1] + 1;
+    // 可以观察到与主线程的内存地址与数据均一致
+    console.log(klBuffer.ptrVal, klBuffer.ucharArray, 'child');
+  }, 1000)
+}
 ```
